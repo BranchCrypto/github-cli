@@ -42,6 +42,9 @@ from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich import box
 
+from prompt_toolkit import prompt as pt_prompt
+from prompt_toolkit.key_binding import KeyBindings
+
 from i18n import LANG
 
 # ──────────────────────── Config ────────────────────────
@@ -392,28 +395,29 @@ class GitHubCLI:
 
     def _show_repo_list(self):
         sort_options = [
-            ("a", "updated", "sort_updated"),
-            ("b", "created", "sort_created"),
-            ("c", "full_name", "sort_name"),
-            ("d", "stargazers_count", "sort_stars"),
+            ("updated", "sort_updated"),
+            ("created", "sort_created"),
+            ("full_name", "sort_name"),
+            ("stargazers_count", "sort_stars"),
         ]
-        sort_key_map = {k: v for k, v, _ in sort_options}
 
         page = 1
         current_sort = "updated"
         keyword = ""
+        sort_idx = 0
 
         while True:
             self._clear()
             self._print_header(self.t["repo_list"])
 
-            # Sort bar — letter keys to avoid conflict with repo numbers
+            # Sort bar with current sort highlighted
             sort_parts = []
-            for key, val, label_key in sort_options:
+            for val, label_key in sort_options:
                 marker = " [reverse bold]" if val == current_sort else ""
-                sort_parts.append(f"[cyan]{key}[/].{self.t[label_key]}{marker}")
+                sort_parts.append(f"{self.t[label_key]}{marker}")
             self.console.print(
-                f"  [bold yellow]{self.t['sort_by']}[/]  " + "  ".join(sort_parts)
+                f"  [bold yellow]{self.t['sort_by']}[/]  "
+                + "  ".join(sort_parts)
             )
 
             # Search
@@ -476,32 +480,70 @@ class GitHubCLI:
 
             self.console.print(table)
             self.console.print()
+
+            # Navigation bar with arrow key hints
             nav = (
                 f"  [dim]{self.t['page'].format(cur=page, total=total_pages)}[/]"
-                f"    [cyan]a-d[/] {self.t['sort_by']}"
-                f"    [cyan]p[/] {self.t['prev']}"
-                f"    [cyan]n[/] {self.t['next']}"
+                f"    [cyan]{self.t['sort_hint']}[/]"
+                f"    [cyan]{self.t['prev_hint']}[/]"
+                f"    [cyan]{self.t['next_hint']}[/]"
                 f"    [cyan]0[/] {self.t['menu_back']}"
             )
             self.console.print(nav)
 
-            action = Prompt.ask(f"  {self.t['choose_repo']}").strip().lower()
+            # Use prompt_toolkit for arrow key support
+            result = {"text": ""}
+
+            kb = KeyBindings()
+
+            @kb.add("left")
+            def _sort_prev(event):
+                nonlocal sort_idx, current_sort, page
+                sort_idx = (sort_idx - 1) % len(sort_options)
+                current_sort = sort_options[sort_idx][0]
+                page = 1
+                result["text"] = "__SORT__"
+
+            @kb.add("right")
+            def _sort_next(event):
+                nonlocal sort_idx, current_sort, page
+                sort_idx = (sort_idx + 1) % len(sort_options)
+                current_sort = sort_options[sort_idx][0]
+                page = 1
+                result["text"] = "__SORT__"
+
+            @kb.add("up")
+            def _go_prev(event):
+                nonlocal page
+                if page > 1:
+                    page -= 1
+                result["text"] = "__PAGE__"
+
+            @kb.add("down")
+            def _go_next(event):
+                nonlocal page
+                if page < total_pages:
+                    page += 1
+                result["text"] = "__PAGE__"
+
+            @kb.add("escape")
+            def _go_back(event):
+                result["text"] = "0"
+
+            action = pt_prompt(
+                f"  {self.t['choose_repo']}",
+                key_bindings=kb,
+            ).strip().lower()
+
             if action in ("0", ""):
                 return
+            elif action == "__SORT__" or action == "__PAGE__":
+                keyword = ""
+                continue
             elif action.isdigit():
                 idx = int(action) - 1
                 if 0 <= idx < len(filtered):
                     self._show_repo_detail(filtered[idx])
-                keyword = ""
-            elif action in sort_key_map:
-                current_sort = sort_key_map[action]
-                page = 1
-                keyword = ""
-            elif action == "p" and page > 1:
-                page -= 1
-                keyword = ""
-            elif action == "n" and page < total_pages:
-                page += 1
                 keyword = ""
             else:
                 keyword = ""

@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
+_test_*.py
+_push.py
 *.pyo
 .env
 .venv/

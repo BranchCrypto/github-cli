@@ -11,8 +11,8 @@ A production-ready, visual, interactive GitHub client that runs entirely in your
 - 🔐 **GitHub Token Authentication** — Login with Personal Access Token, auto-retry on failure
 - 🌐 **Bilingual UI** — English / 中文, selectable on first run, switchable anytime via Settings
 - 📚 **Repository Browser** — Beautiful tabular view (name, language, visibility, stars, forks, size, updated)
-- 🔍 **Search & Sort** — Filter repos by keyword, sort by name / updated / created / stars (letter keys)
-- 📄 **Pagination** — Browse repos page by page (P/N keys)
+- 🔍 **Search & Sort** — Filter repos by keyword, sort by name / updated / created / stars (arrow keys ← →)
+- 📄 **Pagination** — Browse repos page by page (arrow keys ↑ ↓)
 - 📊 **Repository Details** — Full info panel (18 fields: description, branch, license, topics, clone URLs, homepage, watchers, etc.)
 - ➕ **Create Repository** — With name validation, optional description, public/private toggle
 - 🗑️ **Delete Repository** — Full-name confirmation to prevent accidental deletion
@@ -27,7 +27,7 @@ A production-ready, visual, interactive GitHub client that runs entirely in your
 ```bash
 git clone https://github.com/BranchCrypto/github-tools.git
 cd github-tools
-pip install rich requests
+pip install rich requests prompt_toolkit
 python github_cli.py
 ```
 
@@ -56,14 +56,12 @@ github-tools/
 
 | Key | Action |
 |-----|--------|
+| `←` `→` | Cycle through sort options (Updated / Created / Name / Stars) |
+| `↑` | Previous page |
+| `↓` | Next page |
 | `1-15` | View repository detail |
-| `a` | Sort by recently updated |
-| `b` | Sort by recently created |
-| `c` | Sort by name |
-| `d` | Sort by most stars |
-| `p` | Previous page |
-| `n` | Next page |
-| `0` | Back to main menu |
+| `Esc` | Back to main menu |
+| `0` / `Enter` | Back to main menu |
 
 ## ⚙️ Configuration
 
@@ -81,6 +79,7 @@ Config file: `~/.github_cli/config.json`
 
 - **Python 3.8+**
 - **[Rich](https://github.com/Textualize/rich)** — Terminal UI (tables, panels, progress, colors)
+- **[prompt_toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)** — Arrow key navigation & advanced input handling
 - **[Requests](https://github.com/psf/requests)** — HTTP client for GitHub REST API v3
 
 ## 📋 License
