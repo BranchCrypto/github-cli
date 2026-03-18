@@ -1,5 +1,10 @@
 """GitHub CLI Client - Interactive Terminal UI."""
-import json, os, sys, time, requests
+import os, sys
+if sys.platform == "win32":
+    os.system("chcp 65001 > nul 2>&1")
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+import json, time, requests
 from pathlib import Path
 from datetime import datetime
 from rich.console import Console
@@ -19,7 +24,7 @@ class GitHubCLI:
     PER_PAGE = 15
 
     def __init__(self):
-        self.console = Console()
+        self.console = Console(force_terminal=True, legacy_windows=False)
         self.lang = "en"
         self.token = None
         self.username = None
@@ -355,9 +360,9 @@ class GitHubCLI:
             # filter
             if keyword:
                 kw_lower = keyword.lower()
-                filtered = [r for r in repos if kw_lower in r.get("name", "").lower()
-                            or kw_lower in r.get("description", "").lower()
-                            or kw_lower in r.get("language", "").lower()]
+                filtered = [r for r in repos if kw_lower in (r.get("name") or "").lower()
+                            or kw_lower in (r.get("description") or "").lower()
+                            or kw_lower in (r.get("language") or "").lower()]
             else:
                 filtered = repos
 
@@ -404,17 +409,17 @@ class GitHubCLI:
             action = Prompt.ask(f"  {self.t['choose_repo']}").strip().lower()
             if action in ("0", ""):
                 return
+            elif action.isdigit():
+                idx = int(action) - 1
+                if 0 <= idx < len(filtered):
+                    self._show_repo_detail(filtered[idx])
+                keyword = ""
             elif action == "p" and page > 1:
                 page -= 1; keyword = ""
             elif action == "n" and page < total_pages:
                 page += 1; keyword = ""
             elif action in sort_map:
                 current_sort = sort_map[action]; page = 1; keyword = ""
-            elif action.isdigit():
-                idx = int(action) - 1
-                if 0 <= idx < len(filtered):
-                    self._show_repo_detail(filtered[idx])
-                keyword = ""
             else:
                 keyword = ""
 
