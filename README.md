@@ -25,8 +25,8 @@ A production-ready, visual, interactive GitHub client that runs entirely in your
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/BranchCrypto/github-tools.git
-cd github-tools
+git clone https://github.com/BranchCrypto/github-cli.git
+cd github-cli
 pip install rich requests prompt_toolkit
 python github_cli.py
 ```
@@ -45,7 +45,7 @@ On first launch you'll be prompted to choose your language (English or 中文), 
 ## 📁 Project Structure
 
 ```
-github-tools/
+github-cli/
 ├── github_cli.py   # Main application
 ├── i18n.py         # Internationalization (English / 中文)
 ├── .gitignore      # Ignore __pycache__ etc.
